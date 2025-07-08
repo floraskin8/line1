@@ -1,0 +1,53 @@
+#bba-dashboard {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  max-width: 900px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+  color: #1f2937;
+}
+
+#bba-dashboard h1 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #4f46e5;
+  text-align: center;
+}
+
+#bba-dashboard label {
+  margin-right: 1.5rem;
+  font-weight: 600;
+}
+
+#bba-dashboard select {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
+#bba-dashboard button {
+  cursor: pointer;
+  background-color: #4f46e5;
+  border: none;
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-left: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+#bba-dashboard button:hover {
+  background-color: #4338ca;
+}
+
+#bba-dashboard canvas {
+  margin-top: 2rem;
+  max-width: 100%;
+  height: 400px !important;
+  display: block;
+}
