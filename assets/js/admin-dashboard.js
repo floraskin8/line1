@@ -8,13 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
         labels: [],
         counts: [],
         chart: null,
+        errorMsg: '',
+        loading: false,
         filters: {
           period: '',
           source: '',
           device: ''
-        },
-        loading: false,
-        errorMsg: ''
+        }
       };
     },
     mounted() {
@@ -22,57 +22,43 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     methods: {
       async fetchStats() {
-  this.loading = true;
-  this.errorMsg = '';
+        this.errorMsg = '';
+        this.loading = true;
 
-  const params = new URLSearchParams({
-    action: 'bba_get_stats',
-    nonce: bba_ajax.nonce,
-    ...this.filters
-  });
+        const params = new URLSearchParams({
+          action: 'bba_get_stats',
+          nonce: bba_ajax.nonce,
+          ...this.filters
+        });
 
-  try {
-    const res = await fetch(bba_ajax.url + "?" + params.toString());
-    if (!res.ok) throw new Error(`Erreur réseau: ${res.status}`);
+        try {
+          const res = await fetch(`${bba_ajax.url}?${params.toString()}`);
+          const text = await res.text();
 
-    const data = await res.json();
-
-    if (!Array.isArray(data)) {
-      throw new Error('Réponse invalide : attendu un tableau');
-    }
-
-    this.stats = data;
-    this.labels = data.map(d => d.date);
-    this.counts = data.map(d => parseInt(d.views));
-
-    if (this.counts.length === 0) {
-      this.destroyChart();
-      this.errorMsg = 'Aucune donnée à afficher.';
-    } else {
-      this.renderChart();
-    }
-  } catch (error) {
-    this.errorMsg = error.message || 'Erreur lors de la récupération des données.';
-    console.error('Erreur fetchStats:', error);
-    this.destroyChart();
-  } finally {
-    this.loading = false;
-  }
-},
+          try {
+            const data = JSON.parse(text);
+            this.stats = data;
+            this.labels = data.map(d => d.date);
+            this.counts = data.map(d => parseInt(d.views));
+            this.renderChart();
+          } catch (jsonErr) {
+            console.error("Réponse non-JSON reçue :", text);
+            throw new Error('Erreur JSON : ' + jsonErr.message);
+          }
+        } catch (err) {
+          console.error('Erreur fetchStats:', err);
+          this.errorMsg = "❌ Impossible de charger les statistiques.";
+        } finally {
+          this.loading = false;
+        }
+      },
 
       renderChart() {
-        this.destroyChart();
-
         const canvas = document.getElementById("visitsChart");
-        if (!canvas) {
-          console.error('Canvas #visitsChart introuvable');
-          return;
-        }
+        if (!canvas) return;
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          console.error('Impossible d\'obtenir le contexte 2D du canvas');
-          return;
-        }
+
+        if (this.chart) this.chart.destroy();
 
         this.chart = new Chart(ctx, {
           type: "line",
@@ -84,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
               borderColor: "#4F46E5",
               backgroundColor: "rgba(79, 70, 229, 0.2)",
               fill: true,
-              tension: 0.3
+              tension: 0.4
             }]
           },
           options: {
@@ -94,16 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
               y: { title: { display: true, text: "Visites" }, beginAtZero: true }
             },
             plugins: {
-              legend: { display: true, position: "top" }
+              legend: { position: "top" }
             }
           }
         });
-      },
-      destroyChart() {
-        if (this.chart) {
-          this.chart.destroy();
-          this.chart = null;
-        }
       }
     }
   }).mount("#bba-dashboard");
